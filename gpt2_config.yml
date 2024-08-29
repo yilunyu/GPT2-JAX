@@ -1,0 +1,25 @@
+num_query_heads: 16
+num_kv_heads: 16
+embed_dim: 1024 # head_dim * num_kv_heads
+head_dim: 64
+max_target_length: 1024 # max sequence length
+num_layers: 12
+vocab_size: 50257
+#####################################
+# Forked from maxtext:
+#####################################
+
+# Rope parameters
+rope_min_timescale: 1
+rope_max_timescale: 10_000
+
+# Combine matmuls for QKV and MLP
+fused_qkv: False
+fused_mlp: False
+
+quantize_kvcache: False # Set to True to quantize KV Cache values, defaults to False
+
+# The attention parameter dictates the specific algorithm/methodology used to compute the attention scores
+# The attention_type parameter determines the variants of attention, e.g. global or local_sliding
+attention_kernel: "flash" # Supported attention: autoselected, dot_product, flash, cudnn_flash_te
+dropout_rate: 0.1
