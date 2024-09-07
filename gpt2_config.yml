@@ -23,3 +23,9 @@ quantize_kvcache: False # Set to True to quantize KV Cache values, defaults to F
 # The attention_type parameter determines the variants of attention, e.g. global or local_sliding
 attention_kernel: "flash" # Supported attention: autoselected, dot_product, flash, cudnn_flash_te
 dropout_rate: 0.1
+
+#####################################
+# Data loading configs
+#####################################
+remote_name: "sample-10BT"
+stream_data: True

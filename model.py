@@ -85,4 +85,7 @@ class GPT(nn.Module):
     x += pos
     for block in self.decoder_blocks:
       x = block(x)
-    return self.final_dense(self.final_norm(x))
+    x = self.final_norm(x)
+    # weight sharing scheme.
+    kernel = self.token_embedding.variables['params']['embedding']
+    return self.final_dense.apply({'params': {'kernel': kernel}}, x)
