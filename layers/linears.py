@@ -29,12 +29,11 @@ from layers import quantizations
 import numpy as np
 from jax.ad_checkpoint import checkpoint_name
 from jax.experimental import shard_map
-import max_logging
 
 try:
   from jax.experimental.pallas.ops.tpu import megablox as mblx
 except ImportError:
-  max_logging.log("JAX megablox is available for TPU only.")
+  print("JAX megablox is available for TPU only.", flush=True)
   pass
 
 Array = common_types.Array
@@ -451,8 +450,8 @@ class MoeBlock(nn.Module):
                                                             cfg.mlp_dim)
 
     if cfg.megablox:
-      max_logging.log("Running MoE megablox implementation.")
+      print("Running MoE megablox implementation.", flush=True)
       return self.megablox(inputs, gate_logits, w0_kernel, w1_kernel, wo_kernel)
     else:
-      max_logging.log("Running MoE matmul implementation.")
+      print("Running MoE matmul implementation.", flush=True)
       return self.dense_matmul(inputs, gate_logits, w0_kernel, w1_kernel, wo_kernel)
