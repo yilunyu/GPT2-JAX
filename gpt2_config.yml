@@ -5,6 +5,10 @@ head_dim: 64
 max_target_length: 1024 # max sequence length
 num_layers: 12
 vocab_size: 50257
+weight_decay: 0.1
+learning_rate: 6e-4
+batch_size = 64
+
 #####################################
 # Forked from maxtext:
 #####################################

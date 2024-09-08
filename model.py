@@ -4,7 +4,7 @@ import flax.linen as nn
 import jax
 import jax.numpy as jnp
 
-from layers import attentions, gpt3
+from layers import attentions
 
 class MLP(nn.Module):
   n_embd: int
@@ -78,7 +78,7 @@ class GPT(nn.Module):
         param_dtype=jnp.float32,
         dtype=jnp.bfloat16)
 
-  def __call__(self):
+  def __call__(self, x):
     B, T = x.shape
     x = self.token_embedding(x)
     pos = self.position_encoding(jnp.arange(T))

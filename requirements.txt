@@ -5,3 +5,4 @@ flax>=0.8.0
 numpy
 optax
 aqtp
+tiktoken

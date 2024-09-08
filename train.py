@@ -53,5 +53,7 @@ if __name__ == "__main__":
     # Load the YAML content
     config = yaml.safe_load(file)
   # fw = load_dataset("HuggingFaceFW/fineweb-edu", name=config.remote_name, split="train", streaming=config.stream_data)
-  train_loader = data_loader.DataLoader(config.batch_size, config.max_target_length, data_root=config.root_dir, split="train")
-  eval_loader = data_loader.DataLoader(config.batch_size, config.max_target_length, data_root=config.root_dir, split="val")
+  train_loader = data_loader.DataLoader(
+      config['batch_size'], config['max_target_length'], data_root=config['root_dir'], split="train")
+  eval_loader = data_loader.DataLoader(
+      config['batch_size'], config['max_target_length'], data_root=config['root_dir'], split="val")
