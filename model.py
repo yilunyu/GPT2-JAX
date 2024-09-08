@@ -26,21 +26,21 @@ class DecoderBlock(nn.Module):
   weight_dtype: jnp.dtype = jnp.float32
 
   def setup(self):
-    self.norm_1 = nn.RMSNorm(self.config.embed_dim)
+    self.norm_1 = nn.RMSNorm(self.config["embed_dim"])
     self.attention = attentions.Attention(
         config=self.config,
-        num_query_heads=self.config.num_query_heads,
-        num_kv_heads=self.config.num_kv_heads,
-        head_dim=self.config.head_dim,
-        max_target_length=self.config.max_target_length,
+        num_query_heads=self.config["num_query_heads"],
+        num_kv_heads=self.config["num_kv_heads"],
+        head_dim=self.config["head_dim"],
+        max_target_length=self.config["max_target_length"],
         mesh=self.mesh,
-        attention_kernel=self.config.attention_kernel,
+        attention_kernel=self.config["attention_kernel"],
         dtype=self.computation_dtype,
         weight_dtype=self.weight_dtype,
-        dropout_rate=self.config.dropout_rate,
+        dropout_rate=self.config["dropout_rate"],
     )
-    self.norm_2 = nn.RMSNorm(self.config.embed_dim)
-    self.mlp = nn.MLP(self.config.embed_dim)
+    self.norm_2 = nn.RMSNorm(self.config["embed_dim"])
+    self.mlp = nn.MLP(self.config["embed_dim"])
 
   def __call__(self, x):
     x = x + self.attention(self.norm_1(x))
@@ -51,14 +51,14 @@ class GPT(nn.Module):
 
   def setup(self):
     self.token_embedding = nn.Embed(
-        num_embeddings=self.config.vocab_size,
-        features=self.config.hidden_dim,
+        num_embeddings=self.config["vocab_size"],
+        features=self.config["hidden_dim"],
         param_dtype=jnp.float32,
         dtype=jnp.bfloat16)
     # TODO: switch to RoPE.
     self.position_encoding = nn.Embed(
-        num_embeddings=self.config.max_target_length,
-        features=self.config.hidden_dim,
+        num_embeddings=self.config["max_target_length"],
+        features=self.config["hidden_dim"],
         param_dtype=jnp.float32,
         dtype=jnp.bfloat16
     )
@@ -70,11 +70,11 @@ class GPT(nn.Module):
         policy=remat_policy,
     )
     self.decoder_blocks = [
-        RemattedDecoderBlock(self.config.hidden_dim) for _ in range(self.config.num_layers)
+        RemattedDecoderBlock(self.config["hidden_dim"]) for _ in range(self.config["num_layers"])
     ]
     self.final_norm = nn.RMSNorm()
     self.final_dense = nn.Dense(
-        features=self.config.vocab_size,
+        features=self.config["vocab_size"],
         param_dtype=jnp.float32,
         dtype=jnp.bfloat16)
 
