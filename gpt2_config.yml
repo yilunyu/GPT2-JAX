@@ -7,7 +7,7 @@ num_layers: 12
 vocab_size: 50257
 weight_decay: 0.1
 learning_rate: 6e-4
-batch_size = 64
+batch_size: 64
 
 #####################################
 # Forked from maxtext:
@@ -33,3 +33,4 @@ dropout_rate: 0.1
 #####################################
 remote_name: "sample-10BT"
 stream_data: True
+root_dir: "/mnt/gs/gpt-projects/edu_fineweb10B/numpy"
