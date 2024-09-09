@@ -8,15 +8,23 @@ from layers import attentions
 
 class MLP(nn.Module):
   n_embd: int
-  
+  computation_dtype: jnp.dtype = jnp.bfloat16
+  weight_dtype: jnp.dtype = jnp.float32
+
   def setup(self):
-    self.c_fc = nn.Dense(4 * self.n_embd, param_dtype=jnp.float32, dtype=jnp.bfloat16)
-    self.c_proj = nn.Dense(self.n_embd, param_dtype=jnp.float32, dtype=jnp.bfloat16)
+    self.f1 = nn.Dense(
+        4 * self.n_embd,
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype)
+    self.f2 = nn.Dense(
+        self.n_embd,
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype)
 
   def __call__(self, x):
-    x = self.c_fc(x)
+    x = self.f1(x)
     x = nn.gelu(x)
-    x = self.c_proj(x)
+    x = self.f2(x)
     return x
 
 class DecoderBlock(nn.Module):
@@ -40,7 +48,10 @@ class DecoderBlock(nn.Module):
         dropout_rate=self.config["dropout_rate"],
     )
     self.norm_2 = nn.RMSNorm(self.config["embed_dim"])
-    self.mlp = nn.MLP(self.config["embed_dim"])
+    self.mlp = nn.MLP(
+        self.config["embed_dim"],
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype)
 
   def __call__(self, x):
     x = x + self.attention(self.norm_1(x))
@@ -48,19 +59,22 @@ class DecoderBlock(nn.Module):
 
 class GPT(nn.Module):
   config: common_types.Config
+  mesh: jax.sharding.Mesh
+  computation_dtype: jnp.dtype = jnp.bfloat16
+  weight_dtype: jnp.dtype = jnp.float32
 
   def setup(self):
     self.token_embedding = nn.Embed(
         num_embeddings=self.config["vocab_size"],
-        features=self.config["hidden_dim"],
-        param_dtype=jnp.float32,
-        dtype=jnp.bfloat16)
+        features=self.config["embed_dim"],
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype)
     # TODO: switch to RoPE.
     self.position_encoding = nn.Embed(
         num_embeddings=self.config["max_target_length"],
-        features=self.config["hidden_dim"],
-        param_dtype=jnp.float32,
-        dtype=jnp.bfloat16
+        features=self.config["embed_dim"],
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype
     )
     remat_policy = jax.checkpoint_policies.checkpoint_dots_with_no_batch_dims
     # TODO: apply remat_policy on DecoderBlock.
@@ -70,13 +84,18 @@ class GPT(nn.Module):
         policy=remat_policy,
     )
     self.decoder_blocks = [
-        RemattedDecoderBlock(self.config["hidden_dim"]) for _ in range(self.config["num_layers"])
+        RemattedDecoderBlock(
+            config=self.config,
+            mesh=self.mesh,
+            computation_dtype=self.computation_dtype,
+            weight_dtype=self.weight_dtype)
+            for _ in range(self.config["num_layers"])
     ]
     self.final_norm = nn.RMSNorm()
     self.final_dense = nn.Dense(
         features=self.config["vocab_size"],
-        param_dtype=jnp.float32,
-        dtype=jnp.bfloat16)
+        param_dtype=self.weight_dtype,
+        dtype=self.computation_dtype)
 
   def __call__(self, x):
     B, T = x.shape
