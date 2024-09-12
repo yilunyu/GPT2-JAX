@@ -160,11 +160,6 @@ class GPT(nn.Module):
             for _ in range(self.config["num_layers"])
     ]
     self.final_norm = nn.RMSNorm()
-    self.final_dense = nn.Dense(
-        features=self.config["vocab_size"],
-        param_dtype=self.weight_dtype,
-        dtype=self.computation_dtype,
-        kernel_init=nn.with_partitioning(embed_init, (None, None)))
 
   def __call__(self, x):
     B, T = x.shape
@@ -175,5 +170,4 @@ class GPT(nn.Module):
       x = block(x)
     x = self.final_norm(x)
     # weight sharing scheme.
-    kernel = self.token_embedding.variables['params']['embedding']
-    return self.final_dense.apply({'params': {'kernel': kernel}}, x)
+    return self.token_embedding.attend(x)
