@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 import common_types
 import flax.linen as nn
 from flax.linen import initializers
@@ -36,7 +37,7 @@ class MLP(nn.Module):
 class MultiHeadAttention(nn.Module):
   num_heads: int
   head_dim: int
-  mesh: jax.sharding.Mesh
+  # mesh: jax.sharding.Mesh
   computation_dtype: jnp.dtype = jnp.bfloat16
   weight_dtype: jnp.dtype = jnp.float32
 
@@ -85,7 +86,7 @@ class MultiHeadAttention(nn.Module):
 
 class DecoderBlock(nn.Module):
   config: common_types.Config
-  mesh: jax.sharding.Mesh
+  # mesh: jax.sharding.Mesh
   computation_dtype: jnp.dtype = jnp.bfloat16
   weight_dtype: jnp.dtype = jnp.float32
 
@@ -94,7 +95,7 @@ class DecoderBlock(nn.Module):
     self.attention = MultiHeadAttention(
         num_heads=self.config["num_kv_heads"],
         head_dim=self.config["head_dim"],
-        mesh=self.mesh,
+        # mesh=self.mesh,
         computation_dtype=self.computation_dtype,
         weight_dtype=self.weight_dtype,
     )
@@ -126,9 +127,15 @@ class DecoderBlock(nn.Module):
 
 class GPT(nn.Module):
   config: common_types.Config
-  mesh: jax.sharding.Mesh
+  # mesh: jax.sharding.Mesh
   computation_dtype: jnp.dtype = jnp.bfloat16
   weight_dtype: jnp.dtype = jnp.float32
+
+  def __hash__(self):
+    return hash(
+        (json.dumps(self.config, sort_keys=True),
+         self.computation_dtype,
+         self.weight_dtype))
 
   def setup(self):
     self.token_embedding = nn.Embed(
@@ -153,7 +160,7 @@ class GPT(nn.Module):
     self.decoder_blocks = [
         RemattedDecoderBlock(
             config=self.config,
-            mesh=self.mesh,
+            # mesh=self.mesh,
             computation_dtype=self.computation_dtype,
             weight_dtype=self.weight_dtype)
             for _ in range(self.config["num_layers"])
