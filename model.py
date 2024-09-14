@@ -145,7 +145,6 @@ class GPT(nn.Module):
         dtype=self.computation_dtype,
         embedding_init=nn.with_partitioning(embed_init, (None, None)))
     remat_policy = jax.checkpoint_policies.checkpoint_dots_with_no_batch_dims
-    # TODO: apply remat_policy on DecoderBlock.
     RemattedDecoderBlock = nn.remat(
         DecoderBlock,
         prevent_cse=False,

@@ -1,5 +1,5 @@
-jax>=0.4.30
-jaxlib>=0.4.30
+jax==0.4.26
+jaxlib==0.4.26
 orbax-checkpoint>=0.5.21
 flax>=0.8.0
 numpy
